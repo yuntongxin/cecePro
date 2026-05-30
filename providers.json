@@ -1,0 +1,175 @@
+{
+  "version": "1.0",
+  "categories": {
+    "domestic": "国内平台",
+    "international": "国际平台",
+    "relay": "API中继"
+  },
+  "providers": [
+    {
+      "id": "openai",
+      "name": "OpenAI GPT",
+      "category": "international",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "model": "gpt-4o-mini",
+      "format": "openai",
+      "website": "https://platform.openai.com",
+      "free_credit": "需付费",
+      "note": "国际主流模型"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic Claude",
+      "category": "international",
+      "endpoint": "https://api.anthropic.com/v1/messages",
+      "model": "claude-3-haiku-20240307",
+      "format": "anthropic",
+      "website": "https://www.anthropic.com",
+      "free_credit": "需付费",
+      "note": "英文能力强"
+    },
+    {
+      "id": "google",
+      "name": "Google Gemini",
+      "category": "international",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-lite:generateContent",
+      "model": "gemini-1.5-flash-lite",
+      "format": "google",
+      "website": "https://ai.google.dev",
+      "free_credit": "有免费额度",
+      "note": "多模态能力强"
+    },
+    {
+      "id": "siliconflow",
+      "name": "硅基流动 SiliconFlow",
+      "category": "domestic",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "format": "openai",
+      "website": "https://www.siliconflow.cn",
+      "free_credit": "注册送15元额度",
+      "note": "高性能AI基础设施"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "category": "domestic",
+      "endpoint": "https://api.deepseek.com/v1/chat/completions",
+      "model": "deepseek-chat",
+      "format": "openai",
+      "website": "https://platform.deepseek.com",
+      "free_credit": "注册送一定额度",
+      "note": "国产高性能"
+    },
+    {
+      "id": "zhipu",
+      "name": "智谱AI GLM",
+      "category": "domestic",
+      "endpoint": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "model": "glm-4-flash",
+      "format": "openai",
+      "website": "https://open.bigmodel.cn",
+      "free_credit": "注册送Token",
+      "note": "中文理解好"
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "category": "domestic",
+      "endpoint": "https://api.minimax.chat/v1/text/chatcompletion_v2",
+      "model": "abab6.5s-chat",
+      "format": "openai",
+      "website": "https://www.minimax.chat",
+      "free_credit": "注册送Token",
+      "note": "响应快"
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi 月之暗面",
+      "category": "domestic",
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "model": "moonshot-v1-8k",
+      "format": "openai",
+      "website": "https://platform.moonshot.cn",
+      "free_credit": "注册送额度",
+      "note": "长上下文"
+    },
+    {
+      "id": "doubao",
+      "name": "豆包 字节跳动",
+      "category": "domestic",
+      "endpoint": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+      "model": "doubao-pro-32k",
+      "format": "openai",
+      "website": "https://www.volcengine.com/product/doubao",
+      "free_credit": "注册送额度",
+      "note": "字节跳动"
+    },
+    {
+      "id": "tongyi",
+      "name": "通义千问",
+      "category": "domestic",
+      "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "model": "qwen-turbo",
+      "format": "openai",
+      "website": "https://dashscope.console.aliyun.com",
+      "free_credit": "有免费额度",
+      "note": "阿里云"
+    },
+    {
+      "id": "baidu",
+      "name": "百度文心一言",
+      "category": "domestic",
+      "endpoint": "https://qianfan.aiap.baidu.com/v2/chat/completions",
+      "model": "ernie-4.0-8k-latest",
+      "format": "openai",
+      "website": "https://console.bce.baidu.com",
+      "free_credit": "注册送额度",
+      "note": "百度智能云"
+    },
+    {
+      "id": "tencent",
+      "name": "腾讯混元",
+      "category": "domestic",
+      "endpoint": "https://api.hunyuan.cloud.tencent.com/v1/chat/completions",
+      "model": "hunyuan-pro",
+      "format": "openai",
+      "website": "https://cloud.tencent.com/product/hunyuan",
+      "free_credit": "注册送额度",
+      "note": "腾讯云"
+    },
+    {
+      "id": "packycode",
+      "name": "PackyCode",
+      "category": "relay",
+      "endpoint": "https://api.packycode.com/v1/chat/completions",
+      "model": "gpt-4o-mini",
+      "format": "openai",
+      "website": "https://packycode.com",
+      "free_credit": "首充10%折扣",
+      "note": "稳定的API中继服务"
+    },
+    {
+      "id": "aigocode",
+      "name": "AIGoCode",
+      "category": "relay",
+      "endpoint": "https://api.aigocode.com/v1/chat/completions",
+      "model": "gpt-4o-mini",
+      "format": "openai",
+      "website": "https://aigocode.com",
+      "free_credit": "首充10% bonus",
+      "note": "集成多种模型"
+    },
+    {
+      "id": "dmxapi",
+      "name": "DMXAPI",
+      "category": "relay",
+      "endpoint": "https://api.dmxapi.com/v1/chat/completions",
+      "model": "gpt-4o-mini",
+      "format": "openai",
+      "website": "https://dmxapi.com",
+      "free_credit": "GPT/Claude/Gemini 32% off",
+      "note": "全球大模型API服务"
+    }
+  ]
+}

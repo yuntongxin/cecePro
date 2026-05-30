@@ -1,0 +1,25 @@
+[
+  {
+    "id": "bailian-vl",
+    "name": "百炼-视觉",
+    "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "model": "qwen-vl-max",
+    "format": "openai"
+  },
+  {
+    "id": "bailian-35",
+    "name": "百炼 qwen3.5-plus 测试",
+    "endpoint": "11111",
+    "model": "qwen3.5-plus",
+    "format": "openai"
+  },
+  {
+    "name": "Xiaomi MiMo ",
+    "endpoint": "https://token-plan-cn.xiaomimimo.com/anthropic",
+    "model": "mimo-v2.5",
+    "format": "anthropic",
+    "apiKey": "tp-ccki1c6svv33wbur1lyyieqr01kndd25p949da0y6t83al3z",
+    "note": "",
+    "id": "c0756c53"
+  }
+]

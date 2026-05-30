@@ -1,0 +1,3458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频AI解析助手</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Colors */
+            --color-primary: #000000;
+            --color-on-primary: #ffffff;
+            --color-ink: #000000;
+            --color-canvas: #ffffff;
+            --color-inverse-canvas: #000000;
+            --color-inverse-ink: #ffffff;
+            --color-on-inverse-soft: rgba(255, 255, 255, 0.16);
+            --color-hairline: #e6e6e6;
+            --color-hairline-soft: #f1f1f1;
+            --color-surface-soft: #f7f7f5;
+            --color-block-lime: #dceeb1;
+            --color-block-lilac: #c5b0f4;
+            --color-block-cream: #f4ecd6;
+            --color-block-pink: #efd4d4;
+            --color-block-mint: #c8e6cd;
+            --color-block-coral: #f3c9b6;
+            --color-block-navy: #1f1d3d;
+            --color-accent-magenta: #ff3d8b;
+            --color-success: #1ea64a;
+            --color-overlay-scrim: rgba(0, 0, 0, 0.6);
+
+            /* Semantic */
+            --color-error: #dc3545;
+            --color-error-bg: rgba(220, 53, 69, 0.08);
+
+            /* Typography */
+            --font-sans: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+            --weight-light: 300;
+            --weight-regular: 400;
+            --weight-medium: 500;
+            --weight-bold: 700;
+
+            /* Rounded */
+            --rounded-xs: 2px;
+            --rounded-sm: 6px;
+            --rounded-md: 8px;
+            --rounded-lg: 24px;
+            --rounded-xl: 32px;
+            --rounded-pill: 50px;
+            --rounded-full: 9999px;
+
+            /* Spacing */
+            --space-hair: 1px;
+            --space-xxs: 4px;
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 48px;
+            --space-section: 96px;
+
+            /* Elevation */
+            --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-canvas);
+            min-height: 100vh;
+            padding: var(--space-xl);
+            color: var(--color-ink);
+            position: relative;
+            font-weight: var(--weight-light);
+            line-height: 1.45;
+            letter-spacing: -0.26px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: var(--space-xs);
+            font-size: var(--space-xxl);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            letter-spacing: -0.26px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-ink);
+            margin-bottom: var(--space-xxl);
+            font-size: 16px;
+            font-weight: var(--weight-light);
+            opacity: 0.6;
+        }
+
+        .card {
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: var(--weight-bold);
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            letter-spacing: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--color-ink);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: var(--rounded-sm);
+            transition: background 0.15s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--color-surface-soft);
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-lg);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: var(--space-xs) var(--space-lg);
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-pill);
+            color: var(--color-ink);
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: var(--weight-medium);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: -0.10px;
+        }
+
+        .tab-btn:hover {
+            background: var(--color-surface-soft);
+        }
+
+        .tab-btn.active {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--space-xs);
+            color: var(--color-ink);
+            font-size: 14px;
+            font-weight: var(--weight-regular);
+            font-family: var(--font-mono);
+            letter-spacing: 0.54px;
+            text-transform: uppercase;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: var(--space-sm) 14px;
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-md);
+            color: var(--color-ink);
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: var(--weight-light);
+            transition: border-color 0.15s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-ink);
+        }
+
+        .form-group select option {
+            background: var(--color-canvas);
+            color: var(--color-ink);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: var(--font-mono);
+        }
+
+        .api-note {
+            font-size: 12px;
+            color: var(--color-ink);
+            opacity: 0.6;
+            margin-top: var(--space-xs);
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--color-block-cream);
+            border-radius: var(--rounded-md);
+            border-left: 3px solid var(--color-ink);
+        }
+
+        .api-link {
+            color: var(--color-ink);
+            text-decoration: none;
+        }
+
+        .api-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 供应商列表样式 */
+        .provider-list {
+            display: grid;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 10px;
+        }
+
+        /* 模型列表项样式 */
+        .provider-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md);
+            margin-bottom: var(--space-xs);
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-md);
+            transition: border-color 0.15s ease;
+        }
+
+        .provider-item:hover {
+            border-color: var(--color-ink);
+        }
+
+        .provider-info {
+            flex: 1;
+        }
+
+        .provider-name {
+            font-size: 16px;
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            margin-bottom: var(--space-xxs);
+        }
+
+        .provider-meta {
+            font-size: 12px;
+            color: var(--color-ink);
+            opacity: 0.5;
+        }
+
+        .provider-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .provider-btn {
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-pill);
+            background: var(--color-canvas);
+            color: var(--color-ink);
+            font-size: 12px;
+            font-weight: var(--weight-medium);
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .provider-btn.edit {
+            background: var(--color-surface-soft);
+            border-color: var(--color-hairline);
+            color: var(--color-ink);
+        }
+
+        .provider-btn.delete {
+            background: var(--color-error-bg);
+            border-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        .add-provider-btn {
+            padding: 8px 16px;
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-pill);
+            color: var(--color-ink);
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .copy-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* 提示词标签样式 */
+        .prompt-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            background: var(--color-block-lilac);
+            color: var(--color-ink);
+            padding: var(--space-xxs) var(--space-xs);
+            border-radius: var(--rounded-pill);
+            font-size: 12px;
+            font-weight: var(--weight-medium);
+        }
+
+        /* 当前使用模型的样式 */
+        .provider-item.active {
+            border-color: var(--color-success);
+            background: var(--color-canvas);
+        }
+
+        .active-badge {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 2px 8px;
+            background: var(--color-success);
+            color: var(--color-on-primary);
+            border-radius: var(--rounded-pill);
+            font-size: 10px;
+            font-weight: var(--weight-bold);
+        }
+
+        /* 预设标签样式 */
+        .preset-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-lg);
+        }
+
+        .preset-tab {
+            padding: var(--space-xs) var(--space-md);
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-pill);
+            color: var(--color-ink);
+            font-size: 14px;
+            font-weight: var(--weight-regular);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .preset-tab:hover {
+            background: var(--color-surface-soft);
+        }
+
+        .preset-tab.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        /* 添加供应商按钮 */
+        .add-provider-btn {
+            width: 100%;
+            padding: var(--space-sm);
+            background: var(--color-canvas);
+            border: 2px dashed var(--color-hairline);
+            border-radius: var(--rounded-md);
+            color: var(--color-ink);
+            cursor: pointer;
+            font-size: 14px;
+            transition: border-color 0.15s ease;
+            margin-top: var(--space-md);
+            font-family: var(--font-sans);
+        }
+
+        .add-provider-btn:hover {
+            border-color: var(--color-ink);
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-overlay-scrim);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-canvas);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-hairline);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: var(--weight-bold);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+            color: var(--color-ink);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: var(--space-lg);
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: var(--space-sm);
+            border: none;
+            border-radius: var(--rounded-pill);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: var(--weight-medium);
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .modal-btn.cancel {
+            background: var(--color-surface-soft);
+            color: var(--color-ink);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .modal-btn.confirm {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--color-hairline);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-xxl) var(--space-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--color-block-lime);
+        }
+
+        .upload-area:hover {
+            border-color: var(--color-ink);
+            background: var(--color-block-lime);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--color-primary);
+            background: #c8deb0;
+        }
+
+        .upload-icon {
+            font-size: 56px;
+            margin-bottom: var(--space-md);
+        }
+
+        .upload-text {
+            color: var(--color-ink);
+            font-size: 18px;
+            font-weight: var(--weight-medium);
+            letter-spacing: -0.10px;
+        }
+
+        .upload-hint {
+            color: var(--color-ink);
+            opacity: 0.5;
+            font-size: 14px;
+            margin-top: var(--space-xs);
+            font-weight: var(--weight-light);
+        }
+
+        #video-input {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: var(--space-md);
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--color-block-mint);
+            border-radius: var(--rounded-md);
+            display: none;
+            text-align: center;
+            font-size: 14px;
+            color: var(--color-ink);
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: var(--space-sm) var(--space-xl);
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            border: none;
+            border-radius: var(--rounded-pill);
+            font-family: var(--font-sans);
+            font-size: 18px;
+            font-weight: var(--weight-medium);
+            letter-spacing: -0.10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-top: var(--space-lg);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            background: var(--color-hairline);
+            color: var(--color-ink);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            background: var(--color-surface-soft);
+            padding: var(--space-md);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--color-hairline-soft);
+        }
+
+        .result-label {
+            color: var(--color-ink);
+            opacity: 0.5;
+            font-size: 12px;
+            font-weight: var(--weight-regular);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.60px;
+            margin-bottom: var(--space-xxs);
+        }
+
+        .result-value {
+            font-size: 16px;
+            font-weight: var(--weight-medium);
+            color: var(--color-ink);
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: var(--rounded-sm);
+            vertical-align: middle;
+            margin-right: var(--space-xs);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .prompt-card {
+            background: var(--color-surface-soft);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-md);
+            border: 1px solid var(--color-hairline-soft);
+        }
+
+        .prompt-label {
+            color: var(--color-ink);
+            font-size: 14px;
+            font-weight: var(--weight-medium);
+            margin-bottom: var(--space-xs);
+        }
+
+        .prompt-box {
+            background: var(--color-canvas);
+            color: var(--color-ink);
+            padding: var(--space-md);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--color-hairline);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .prompt-box:hover {
+            background: var(--color-surface-soft);
+        }
+
+        .copy-btn {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            border: none;
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--rounded-pill);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: var(--weight-medium);
+            margin-top: var(--space-xs);
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .copy-btn:hover {
+            opacity: 0.8;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: var(--color-block-lilac);
+            color: var(--color-ink);
+            padding: var(--space-xxs) var(--space-xs);
+            border-radius: var(--rounded-pill);
+            font-size: 12px;
+            font-weight: var(--weight-medium);
+        }
+
+        .loading-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .loading {
+            display: none;
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--rounded-pill);
+            align-items: center;
+            gap: var(--space-xs);
+            animation: slideIn 0.3s ease-out;
+            font-size: 14px;
+            font-weight: var(--weight-medium);
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--color-on-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--color-on-primary);
+            font-size: 14px;
+            font-weight: var(--weight-medium);
+        }
+
+        .error {
+            background: var(--color-error-bg);
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+            padding: var(--space-md);
+            border-radius: var(--rounded-md);
+            margin-top: var(--space-md);
+            display: none;
+            font-size: 14px;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--color-ink);
+            opacity: 0.4;
+            margin-top: var(--space-xxl);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.60px;
+        }
+
+        @media (max-width: 960px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-md);
+            }
+            .card {
+                border-radius: var(--rounded-md);
+                padding: var(--space-lg);
+            }
+            .upload-area {
+                border-radius: var(--rounded-md);
+                padding: var(--space-xl) var(--space-md);
+            }
+        }
+
+        @media (max-width: 560px) {
+            h1 {
+                font-size: 32px;
+            }
+            .tabs {
+                flex-wrap: wrap;
+            }
+            .tab-btn {
+                flex: 1 1 calc(50% - var(--space-xs));
+                font-size: 14px;
+                padding: var(--space-xs) var(--space-sm);
+            }
+            .btn {
+                width: 100%;
+                padding: var(--space-md) var(--space-lg);
+                font-size: 16px;
+            }
+            .card {
+                padding: var(--space-md);
+            }
+            .upload-area {
+                padding: var(--space-lg) var(--space-sm);
+            }
+            .upload-icon {
+                font-size: 40px;
+            }
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 559px) {
+            .container {
+                padding: 0;
+            }
+        }
+
+        /* 模型管理界面样式 */
+        .provider-manager {
+            background: var(--color-block-cream);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-lg);
+            margin: var(--space-lg) 0;
+        }
+
+        .provider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .provider-header h3 {
+            margin: 0;
+            color: var(--color-ink);
+            font-weight: var(--weight-bold);
+        }
+
+        .provider-tabs {
+            display: flex;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        .provider-tab {
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--rounded-pill);
+            border: 1px solid var(--color-hairline);
+            background: var(--color-canvas);
+            color: var(--color-ink);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: var(--weight-regular);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .provider-tab:hover {
+            background: var(--color-surface-soft);
+        }
+
+        .provider-tab.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .provider-search {
+            width: 100%;
+            padding: var(--space-sm) 14px;
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--color-hairline);
+            background: var(--color-canvas);
+            color: var(--color-ink);
+            font-family: var(--font-sans);
+            font-size: 16px;
+            margin-bottom: var(--space-md);
+        }
+
+        .provider-search::placeholder {
+            color: var(--color-ink);
+            opacity: 0.4;
+        }
+
+        .provider-mgr-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .provider-mgr-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md);
+            border-radius: var(--rounded-md);
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            margin-bottom: var(--space-xs);
+            transition: border-color 0.15s ease;
+        }
+
+        .provider-mgr-item:hover {
+            border-color: var(--color-ink);
+        }
+
+        .provider-mgr-item.active {
+            border: 2px solid var(--color-primary);
+            background: var(--color-canvas);
+        }
+
+        .provider-mgr-info {
+            flex: 1;
+        }
+
+        .provider-mgr-name {
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            margin-bottom: var(--space-xxs);
+        }
+
+        .provider-mgr-model {
+            font-size: 12px;
+            color: var(--color-ink);
+            opacity: 0.5;
+            font-family: var(--font-mono);
+        }
+
+        .provider-mgr-note {
+            font-size: 11px;
+            color: var(--color-ink);
+            opacity: 0.4;
+            margin-top: 3px;
+        }
+
+        .provider-mgr-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .provider-mgr-btn {
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--rounded-pill);
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: var(--weight-medium);
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .provider-mgr-btn.use {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .provider-mgr-btn.use:hover {
+            opacity: 0.8;
+        }
+
+        .provider-mgr-btn.test {
+            background: var(--color-surface-soft);
+            color: var(--color-ink);
+        }
+
+        .provider-mgr-btn.test:hover {
+            opacity: 0.8;
+        }
+
+        .provider-mgr-btn.edit {
+            background: var(--color-surface-soft);
+            color: var(--color-ink);
+        }
+
+        .provider-mgr-btn.delete {
+            background: var(--color-error-bg);
+            color: var(--color-error);
+        }
+
+        .provider-mgr-btn.delete:hover {
+            opacity: 0.8;
+        }
+
+        /* 新增：内联样式替代类 */
+        .settings-panel {
+            margin-bottom: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-surface-soft);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .settings-panel-title {
+            font-weight: var(--weight-bold);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--color-ink);
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-sm);
+            color: var(--color-ink);
+            font-size: 12px;
+            font-family: var(--font-sans);
+        }
+
+        .settings-label {
+            font-size: 12px;
+            margin-bottom: 4px;
+            display: block;
+            color: var(--color-ink);
+            opacity: 0.5;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.54px;
+        }
+
+        .info-tip {
+            padding: var(--space-xs);
+            background: var(--color-block-cream);
+            border-radius: var(--rounded-sm);
+            border-left: 2px solid var(--color-ink);
+            font-size: 11px;
+            line-height: 1.3;
+            color: var(--color-ink);
+            opacity: 0.6;
+        }
+
+        .platform-badge {
+            padding: var(--space-xxs) var(--space-xs);
+            background: var(--color-block-lilac);
+            border-radius: var(--rounded-xs);
+            font-size: 11px;
+            color: var(--color-ink);
+            font-weight: var(--weight-medium);
+        }
+
+        .result-link {
+            color: var(--color-ink);
+            text-decoration: underline;
+            text-decoration-color: var(--color-hairline);
+        }
+
+        .result-link:hover {
+            text-decoration-color: var(--color-ink);
+        }
+
+        .quality-btn {
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--color-surface-soft);
+            border: 1px solid var(--color-hairline);
+            border-radius: var(--rounded-sm);
+            color: var(--color-ink);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .quality-btn.selected {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: var(--space-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--rounded-pill);
+            z-index: 10000;
+            font-size: 14px;
+            font-weight: var(--weight-medium);
+            transition: opacity 0.3s ease;
+        }
+
+        .toast-error {
+            background: var(--color-error);
+            color: var(--color-on-primary);
+        }
+
+        .parse-result-item {
+            padding: var(--space-md);
+            background: var(--color-surface-soft);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--color-hairline);
+            margin-bottom: var(--space-xs);
+        }
+
+        .item-download-btn {
+            padding: var(--space-xs) var(--space-md);
+            background: var(--color-primary);
+            border: none;
+            border-radius: var(--rounded-pill);
+            color: var(--color-on-primary);
+            font-size: 12px;
+            font-weight: var(--weight-medium);
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+            font-family: var(--font-sans);
+        }
+
+        .item-download-btn:hover {
+            opacity: 0.8;
+        }
+
+        .batch-download-btn {
+            flex: 1;
+            background: var(--color-success);
+            color: var(--color-on-primary);
+            display: none;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--color-primary);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: var(--rounded-full);
+        }
+
+        .progress-bar-track {
+            height: 6px;
+            background: var(--color-hairline-soft);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--color-ink);
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>视频AI解析助手</h1>
+        <p class="subtitle">上传视频，自动分析风格并生成AI提示词</p>
+
+
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-video" onclick="switchTab('video')">🎬 视频</button>
+                <button class="tab-btn" id="tab-image" onclick="switchTab('image')">🖼️ 图片</button>
+                <button class="tab-btn" id="tab-link" onclick="switchTab('link')">🔗 链接解析</button>
+                <button class="tab-btn" id="tab-models" onclick="switchTab('models')">⚙️ 模型管理</button>
+            </div>
+
+            <!-- 视频上传区域 -->
+            <div id="video-section">
+                <!-- 视频分析设置 -->
+                <div class="settings-panel">
+                    <div class="settings-panel-title">
+                        <span>🎬</span> 视频分析设置
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+                        <!-- 分析模式 -->
+                        <div style="flex: 1; min-width: 180px;">
+                            <label class="settings-label">分析模式</label>
+                            <select id="analysis-mode" class="settings-input">
+                                <option value="auto">自动</option>
+                                <option value="custom">自定义帧数</option>
+                                <option value="interval">按时间间隔</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 自定义帧数选项 -->
+                        <div id="custom-frames-container" style="flex: 1; min-width: 120px; display: none;">
+                            <label class="settings-label">帧数</label>
+                            <input type="number" id="custom-frames" value="5" min="3" max="30" class="settings-input">
+                        </div>
+
+                        <!-- 时间间隔选项 -->
+                        <div id="frame-interval-container" style="flex: 1; min-width: 120px; display: none;">
+                            <label class="settings-label">时间间隔</label>
+                            <select id="frame-interval" class="settings-input">
+                                <option value="1">每1秒1帧</option>
+                                <option value="2" selected>每2秒1帧</option>
+                                <option value="3">每3秒1帧</option>
+                                <option value="4">每4秒1帧</option>
+                                <option value="5">每5秒1帧</option>
+                            </select>
+                        </div>
+
+                        <div style="flex: 1; min-width: 200px;">
+                            <div class="info-tip">
+                                💡 帧数越多，效果越好但成本越高
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    // 根据分析模式显示/隐藏相应的选项
+                    document.getElementById('analysis-mode').addEventListener('change', function() {
+                        const mode = this.value;
+                        const customContainer = document.getElementById('custom-frames-container');
+                        const intervalContainer = document.getElementById('frame-interval-container');
+                        
+                        // 隐藏所有选项
+                        customContainer.style.display = 'none';
+                        intervalContainer.style.display = 'none';
+                        
+                        // 显示当前模式对应的选项
+                        if (mode === 'custom') {
+                            customContainer.style.display = 'block';
+                        } else if (mode === 'interval') {
+                            intervalContainer.style.display = 'block';
+                        }
+                    });
+                    
+                    // 初始化显示状态
+                    document.getElementById('analysis-mode').dispatchEvent(new Event('change'));
+                </script>
+                
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="video-input" accept="video/mp4,video/avi,video/mov,video/mkv,video/webm">
+                    <div class="upload-icon">🎬</div>
+                    <div class="upload-text">点击或拖拽上传视频</div>
+                    <div class="upload-hint">支持 MP4, AVI, MOV, MKV, WEBM 格式（最大200MB）</div>
+                </div>
+                <div class="file-info" id="file-info">
+                    <span id="file-name"></span>
+                </div>
+
+                <button class="btn" id="analyze-btn" onclick="analyzeVideo()">
+                    🔍 开始解析视频
+                </button>
+            </div>
+
+            <!-- 图片上传区域 -->
+            <div id="image-section" style="display: none;">
+                <div class="upload-area" id="image-upload-area">
+                    <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <div class="upload-icon">🖼️</div>
+                    <div class="upload-text">点击或拖拽上传图片</div>
+                    <div class="upload-hint">支持 JPG, PNG, GIF, WEBP 格式（最大200MB）</div>
+                </div>
+                <div class="file-info" id="image-file-info">
+                    <span id="image-file-name"></span>
+                </div>
+
+                <button class="btn" id="image-analyze-btn" onclick="analyzeImage()">
+                    🔍 开始解析图片
+                </button>
+            </div>
+
+            <!-- 链接解析区域 -->
+            <div id="link-section" style="display: none;">
+                <div class="settings-panel">
+                    <div class="settings-panel-title">
+                        <span>🔗</span> 链接解析设置
+                    </div>
+                    <div class="form-group">
+                        <label>视频/图片链接（支持批量，每行一个）</label>
+                        <textarea id="link-input" rows="4" placeholder="请输入抖音、B站、YouTube、Twitter、TikTok等链接，每行一个"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>平台选择</label>
+                        <select id="platform-select">
+                            <option value="auto">自动识别</option>
+                            <option value="douyin">抖音</option>
+                            <option value="bilibili">B站</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="onlyfans">OnlyFans</option>
+                            <option value="general">通用链接</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="download-audio-only">
+                            仅下载音频
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="merge-video-audio">
+                            合并音视频（B站/YouTube）
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="parse-btn" onclick="parseLink()" style="flex: 1;">
+                        🔍 开始解析链接
+                    </button>
+                    <button class="btn batch-download-btn" id="batch-download-btn" onclick="batchDownload()">
+                        📥 批量下载全部
+                    </button>
+                </div>
+
+                <!-- 批量解析进度 -->
+                <div id="batch-progress" style="margin-top: 15px; display: none;">
+                    <div class="settings-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: var(--color-ink); opacity: 0.5;">解析进度</span>
+                            <span id="batch-progress-text" style="font-size: 13px; color: var(--color-ink); font-weight: var(--weight-medium);">0 / 0</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div id="batch-progress-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 解析结果区域 -->
+                <div id="link-result" style="margin-top: 20px; display: none;">
+                    <div class="card">
+                        <div class="card-title">📊 解析结果 <span id="result-count"></span></div>
+                        <div id="link-result-content"></div>
+                    </div>
+                </div>
+
+                <!-- 单个解析结果项模板 -->
+                <template id="result-item-template">
+                    <div class="parse-result-item">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <span class="platform-badge"></span>
+                                    <span class="item-status" style="font-size: 12px; color: var(--color-ink); opacity: 0.5;"></span>
+                                </div>
+                                <div class="item-title" style="font-size: 14px; color: var(--color-ink); font-weight: var(--weight-medium);"></div>
+                                <div class="item-cover" style="margin-top: 8px; display: none;">
+                                    <img class="cover-img" src="" style="max-width: 80px; max-height: 60px; border-radius: 6px; object-fit: cover;">
+                                </div>
+                            </div>
+                            <button class="item-download-btn" onclick="downloadSingleItem(this)">
+                                📥 下载
+                            </button>
+                        </div>
+                        <div class="quality-options" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-hairline);">
+                            <div style="font-size: 12px; color: var(--color-ink); opacity: 0.5; margin-bottom: 8px;">选择画质：</div>
+                            <div class="quality-buttons" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                        </div>
+                        <div class="item-error" style="display: none; margin-top: 10px; padding: 8px; background: var(--color-error-bg); border-radius: 6px; font-size: 12px; color: var(--color-error);"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 模型管理区域 -->
+            <div id="models-section" style="display: none;">
+                <!-- 模型管理界面 -->
+                <div class="provider-manager" id="provider-manager">
+                    <div class="provider-header">
+                        <h3>模型管理</h3>
+                        <button class="provider-mgr-btn use" onclick="showAddProviderModal()">+ 添加模型</button>
+                    </div>
+
+                    <div class="provider-tabs">
+                        <button class="provider-tab active" data-category="all" onclick="filterProviders('all')">全部</button>
+                        <button class="provider-tab" data-category="domestic" onclick="filterProviders('domestic')">国内平台</button>
+                        <button class="provider-tab" data-category="international" onclick="filterProviders('international')">国际平台</button>
+                        <button class="provider-tab" data-category="relay" onclick="filterProviders('relay')">API中继</button>
+                        <button class="provider-tab" data-category="custom" onclick="filterProviders('custom')">我的</button>
+                    </div>
+
+                    <input type="text" class="provider-search" placeholder="搜索模型..." oninput="searchProviders(this.value)">
+
+                    <div class="provider-mgr-list" id="provider-list">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="error" id="error"></div>
+        </div>
+
+        <!-- 模型配置模态框 -->
+        <div class="modal" id="provider-modal">
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-title" id="modal-title">添加模型</div>
+                
+                <!-- 预设模板选择 -->
+                <div class="preset-tabs">
+                    <button class="preset-tab active" data-preset="">自定义配置</button>
+                    <button class="preset-tab" data-preset="anthropic">Claude Official</button>
+                    <button class="preset-tab" data-preset="deepseek">DeepSeek</button>
+                    <button class="preset-tab" data-preset="zhipu">Zhipu GLM</button>
+                    <button class="preset-tab" data-preset="zhipu_en">Zhipu GLM en</button>
+                    <button class="preset-tab" data-preset="bailian">Bailian</button>
+                    <button class="preset-tab" data-preset="bailian_coding">Bailian For Coding</button>
+                    <button class="preset-tab" data-preset="kimi">Kimi</button>
+                    <button class="preset-tab" data-preset="kimi_coding">Kimi For Coding</button>
+                    <button class="preset-tab" data-preset="stepfun">StepFun</button>
+                    <button class="preset-tab" data-preset="katcoder">KAT-Coder</button>
+                    <button class="preset-tab" data-preset="longcat">Longcat</button>
+                    <button class="preset-tab" data-preset="minimax">MiniMax</button>
+                    <button class="preset-tab" data-preset="minimax_en">MiniMax en</button>
+                    <button class="preset-tab" data-preset="doubaoseed">DouBaoSeed</button>
+                    <button class="preset-tab" data-preset="bailing">BaiLing</button>
+                    <button class="preset-tab" data-preset="xiaomi">Xiaomi MiMo</button>
+                    <button class="preset-tab" data-preset="modelscope">ModelScope</button>
+                    <button class="preset-tab" data-preset="aihubmix">AiHubMix</button>
+                    <button class="preset-tab" data-preset="siliconflow">SiliconFlow</button>
+                    <button class="preset-tab" data-preset="siliconflow_en">SiliconFlow en</button>
+                    <button class="preset-tab" data-preset="dmxapi">DMXAPI</button>
+                    <button class="preset-tab" data-preset="youyun">优云智算</button>
+                    <button class="preset-tab" data-preset="openrouter">OpenRouter</button>
+                    <button class="preset-tab" data-preset="novita">Novita AI</button>
+                    <button class="preset-tab" data-preset="nvidia">Nvidia</button>
+                    <button class="preset-tab" data-preset="packycode">PackyCode</button>
+                    <button class="preset-tab" data-preset="cubence">Cubence</button>
+                    <button class="preset-tab" data-preset="aigocode">AIGoCode</button>
+                    <button class="preset-tab" data-preset="rightcode">RightCode</button>
+                    <button class="preset-tab" data-preset="aicodemirror">AICodeMirror</button>
+                    <button class="preset-tab" data-preset="aicoding">AICoding</button>
+                    <button class="preset-tab" data-preset="crazyrouter">CrazyRouter</button>
+                    <button class="preset-tab" data-preset="sssaicode">SSSAiCode</button>
+                    <button class="preset-tab" data-preset="micu">Micu</button>
+                    <button class="preset-tab" data-preset="xcodeapi">X-Code API</button>
+                    <button class="preset-tab" data-preset="ctok">CTok.ai</button>
+                    <button class="preset-tab" data-preset="aws_bedrock_aksk">AWS Bedrock (AKSK)</button>
+                    <button class="preset-tab" data-preset="aws_bedrock_api">AWS Bedrock (API Key)</button>
+                    <button class="preset-tab" data-preset="openai">OpenAI</button>
+                    <button class="preset-tab" data-preset="gemini">Google Gemini</button>
+                    <button class="preset-tab" data-preset="azure">Azure OpenAI</button>
+                    <button class="preset-tab" data-preset="doubao">Doubao</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>配置名称</label>
+                    <input type="text" id="provider-name" placeholder="例如：OpenAI">
+                </div>
+                <div class="form-group">
+                    <label>API 地址</label>
+                    <input type="text" id="provider-endpoint" placeholder="例如：https://api.openai.com/v1/chat/completions">
+                </div>
+                <div class="form-group">
+                    <label>模型名称</label>
+                    <input type="text" id="provider-model" placeholder="例如：gpt-4o-mini">
+                </div>
+                <div class="form-group">
+                    <label>API 格式</label>
+                    <select id="provider-format">
+                        <option value="openai">OpenAI 兼容格式</option>
+                        <option value="anthropic">Anthropic 格式</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="password" id="provider-api-key" placeholder="输入API Key">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" id="provider-note" placeholder="例如：公司专用账号">
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn cancel" onclick="closeProviderModal()">取消</button>
+                    <button class="modal-btn confirm" onclick="saveProvider()">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载状态容器 -->
+        <div class="loading-container">
+            <!-- 视频加载状态 -->
+            <div class="loading" id="video-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">正在分析视频，请稍候...</div>
+            </div>
+
+            <!-- 图片加载状态 -->
+            <div class="loading" id="image-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">正在分析图片，请稍候...</div>
+            </div>
+
+            <!-- 链接解析加载状态 -->
+            <div class="loading" id="link-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">正在解析链接，请稍候...</div>
+            </div>
+
+            <!-- 测试连接加载状态 -->
+            <div class="loading" id="test-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">正在测试连接，请稍候...</div>
+            </div>
+        </div>
+
+        <!-- 视频结果卡片 -->
+        <div class="card result-section" id="video-result-card" style="display: none;">
+            <div class="card-title">📊 视频分析结果</div>
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">视频时长</div>
+                    <div class="result-value" id="video-res-duration">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">分辨率/尺寸</div>
+                    <div class="result-value" id="video-res-resolution">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">帧率</div>
+                    <div class="result-value" id="video-res-fps">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">主色调</div>
+                    <div class="result-value">
+                        <span class="color-preview" id="video-color-preview"></span>
+                        <span id="video-res-color">-</span>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">色调风格</div>
+                    <div class="result-value" id="video-res-warmth">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">饱和度</div>
+                    <div class="result-value" id="video-res-saturation">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">亮度</div>
+                    <div class="result-value" id="video-res-brightness">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">运动程度</div>
+                    <div class="result-value" id="video-res-motion">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">场景类型</div>
+                    <div class="result-value" id="video-res-scene">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 视频提示词卡片 -->
+        <div class="card result-section" id="video-prompt-card" style="display: none;">
+            <div class="card-title">✨ AI生成提示词</div>
+            <div id="video-prompt-results"></div>
+        </div>
+
+        <!-- 图片结果卡片 -->
+        <div class="card result-section" id="image-result-card" style="display: none;">
+            <div class="card-title">📊 图片分析结果</div>
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">分辨率/尺寸</div>
+                    <div class="result-value" id="image-res-resolution">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">主色调</div>
+                    <div class="result-value">
+                        <span class="color-preview" id="image-color-preview"></span>
+                        <span id="image-res-color">-</span>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">色调风格</div>
+                    <div class="result-value" id="image-res-warmth">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">饱和度</div>
+                    <div class="result-value" id="image-res-saturation">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">亮度</div>
+                    <div class="result-value" id="image-res-brightness">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">运动程度</div>
+                    <div class="result-value" id="image-res-motion">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">场景类型</div>
+                    <div class="result-value" id="image-res-scene">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片提示词卡片 -->
+        <div class="card result-section" id="image-prompt-card" style="display: none;">
+            <div class="card-title">✨ AI生成提示词</div>
+            <div id="image-prompt-results"></div>
+        </div>
+
+        <div class="footer">
+            <p>视频AI解析助手 · 支持多种AI模型</p>
+        </div>
+    </div>
+
+
+
+    <script>
+        let selectedFile = null;
+        let selectedImageFile = null;
+        let providers = [];
+        let currentProvider = null;
+        let currentTab = 'video';
+
+        // 模型管理相关变量
+        let allProviders = [];
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载供应商配置
+            loadProviders();
+
+            // 视频上传区域事件
+            const uploadArea = document.getElementById('upload-area');
+            const videoInput = document.getElementById('video-input');
+
+            uploadArea.addEventListener('click', () => videoInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    selectedFile = e.dataTransfer.files[0];
+                    updateFileInfo();
+                }
+            });
+
+            videoInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    selectedFile = e.target.files[0];
+                    updateFileInfo();
+                }
+            });
+
+            // 图片上传区域事件
+            const imageUploadArea = document.getElementById('image-upload-area');
+            const imageInput = document.getElementById('image-input');
+
+            imageUploadArea.addEventListener('click', () => imageInput.click());
+
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.add('dragover');
+            });
+
+            imageUploadArea.addEventListener('dragleave', () => {
+                imageUploadArea.classList.remove('dragover');
+            });
+
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    selectedImageFile = e.dataTransfer.files[0];
+                    updateImageFileInfo();
+                }
+            });
+
+            imageInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    selectedImageFile = e.target.files[0];
+                    updateImageFileInfo();
+                }
+            });
+        });
+
+        // 切换标签
+        function switchTab(tab) {
+                currentTab = tab;
+                
+                // 更新标签按钮状态
+                document.getElementById('tab-video').classList.remove('active');
+                document.getElementById('tab-image').classList.remove('active');
+                document.getElementById('tab-link').classList.remove('active');
+                document.getElementById('tab-models').classList.remove('active');
+                document.getElementById(`tab-${tab}`).classList.add('active');
+                
+                // 显示/隐藏对应区域
+                document.getElementById('video-section').style.display = tab === 'video' ? 'block' : 'none';
+                document.getElementById('image-section').style.display = tab === 'image' ? 'block' : 'none';
+                document.getElementById('link-section').style.display = tab === 'link' ? 'block' : 'none';
+                document.getElementById('models-section').style.display = tab === 'models' ? 'block' : 'none';
+                
+                // 隐藏所有结果卡片，除了当前选项卡的
+                if (tab === 'video') {
+                    document.getElementById('video-result-card').style.display = 'block';
+                    document.getElementById('video-prompt-card').style.display = 'block';
+                    document.getElementById('image-result-card').style.display = 'none';
+                    document.getElementById('image-prompt-card').style.display = 'none';
+                    document.getElementById('link-result').style.display = 'none';
+                } else if (tab === 'image') {
+                    document.getElementById('video-result-card').style.display = 'none';
+                    document.getElementById('video-prompt-card').style.display = 'none';
+                    document.getElementById('image-result-card').style.display = 'block';
+                    document.getElementById('image-prompt-card').style.display = 'block';
+                    document.getElementById('link-result').style.display = 'none';
+                } else if (tab === 'link') {
+                    document.getElementById('video-result-card').style.display = 'none';
+                    document.getElementById('video-prompt-card').style.display = 'none';
+                    document.getElementById('image-result-card').style.display = 'none';
+                    document.getElementById('image-prompt-card').style.display = 'none';
+                    document.getElementById('link-result').style.display = 'none';
+                } else {
+                    document.getElementById('video-result-card').style.display = 'none';
+                    document.getElementById('video-prompt-card').style.display = 'none';
+                    document.getElementById('image-result-card').style.display = 'none';
+                    document.getElementById('image-prompt-card').style.display = 'none';
+                    document.getElementById('link-result').style.display = 'none';
+                }
+                
+                // 隐藏错误信息
+                document.getElementById('error').classList.remove('show');
+                
+                // 只隐藏未显示的加载状态
+                const videoLoading = document.getElementById('video-loading');
+                const imageLoading = document.getElementById('image-loading');
+                const linkLoading = document.getElementById('link-loading');
+                const testLoading = document.getElementById('test-loading');
+                
+                if (!videoLoading.classList.contains('show')) {
+                    videoLoading.style.display = 'none';
+                }
+                
+                if (!imageLoading.classList.contains('show')) {
+                    imageLoading.style.display = 'none';
+                }
+                
+                if (!linkLoading.classList.contains('show')) {
+                    linkLoading.style.display = 'none';
+                }
+                
+                if (!testLoading.classList.contains('show')) {
+                    testLoading.style.display = 'none';
+                }
+                
+                // 如果切换到模型管理标签，加载模型列表
+                if (tab === 'models') {
+                    loadAllProviders();
+                }
+            }
+
+        // 更新文件信息
+        function updateFileInfo() {
+            if (selectedFile) {
+                const fileInfo = document.getElementById('file-info');
+                const fileName = document.getElementById('file-name');
+                
+                fileName.textContent = `文件名: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileInfo.classList.add('show');
+            }
+        }
+
+        // 更新图片文件信息
+        function updateImageFileInfo() {
+            if (selectedImageFile) {
+                const fileInfo = document.getElementById('image-file-info');
+                const fileName = document.getElementById('image-file-name');
+                
+                fileName.textContent = `文件名: ${selectedImageFile.name} (${(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileInfo.classList.add('show');
+            }
+        }
+
+        // 分析视频
+        function analyzeVideo() {
+            if (!selectedFile) {
+                showError('请先上传视频文件');
+                return;
+            }
+
+            if (!currentProvider) {
+                showError('请先选择供应商');
+                return;
+            }
+
+            // 显示加载状态
+            const videoLoading = document.getElementById('video-loading');
+            videoLoading.style.display = 'block';
+            videoLoading.classList.add('show');
+            document.getElementById('error').classList.remove('show');
+
+            // 获取分析模式和参数
+            const analysisMode = document.getElementById('analysis-mode').value;
+            let analysisParams = {};
+
+            if (analysisMode === 'custom') {
+                analysisParams.frames = parseInt(document.getElementById('custom-frames').value);
+            } else if (analysisMode === 'interval') {
+                analysisParams.interval = parseInt(document.getElementById('frame-interval').value);
+            }
+
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+            formData.append('analysis_mode', analysisMode);
+            formData.append('analysis_params', JSON.stringify(analysisParams));
+            formData.append('provider_config', JSON.stringify(currentProvider));
+
+            // 发送请求
+            fetch('/analyze_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const videoLoading = document.getElementById('video-loading');
+                videoLoading.classList.remove('show');
+                videoLoading.style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayResults(data, 'video');
+                    displayPrompts(data.prompts, 'video');
+                }
+            })
+            .catch(error => {
+                const videoLoading = document.getElementById('video-loading');
+                videoLoading.classList.remove('show');
+                videoLoading.style.display = 'none';
+                showError('分析失败，请检查网络连接');
+                console.error('Error:', error);
+            });
+        }
+
+        // 分析图片
+        function analyzeImage() {
+            if (!selectedImageFile) {
+                showError('请先上传图片文件');
+                return;
+            }
+
+            if (!currentProvider) {
+                showError('请先选择供应商');
+                return;
+            }
+
+            // 显示加载状态
+            const imageLoading = document.getElementById('image-loading');
+            imageLoading.style.display = 'block';
+            imageLoading.classList.add('show');
+            document.getElementById('error').classList.remove('show');
+
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('image', selectedImageFile);
+            formData.append('provider_config', JSON.stringify(currentProvider));
+
+            // 发送请求
+            fetch('/analyze_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const imageLoading = document.getElementById('image-loading');
+                imageLoading.classList.remove('show');
+                imageLoading.style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayResults(data, 'image');
+                    displayPrompts(data.prompts, 'image');
+                }
+            })
+            .catch(error => {
+                const imageLoading = document.getElementById('image-loading');
+                imageLoading.classList.remove('show');
+                imageLoading.style.display = 'none';
+                showError('分析失败，请检查网络连接');
+                console.error('Error:', error);
+            });
+        }
+
+        // 链接解析功能
+        let linkResult = null;
+        let parseResults = [];
+        let batchResults = [];
+
+        function parseLink() {
+            const linkInput = document.getElementById('link-input');
+            const platformSelect = document.getElementById('platform-select');
+            const linkText = linkInput.value.trim();
+            const platform = platformSelect.value;
+
+            if (!linkText) {
+                showError('请输入链接');
+                return;
+            }
+
+            // 解析所有链接
+            const links = linkText.split('\n').map(l => l.trim()).filter(l => l);
+            
+            if (links.length === 0) {
+                showError('请输入有效的链接');
+                return;
+            }
+
+            // 显示加载状态
+            const linkLoading = document.getElementById('link-loading');
+            linkLoading.style.display = 'block';
+            linkLoading.classList.add('show');
+            document.getElementById('error').classList.remove('show');
+
+            // 如果是单个链接，直接解析
+            if (links.length === 1) {
+                parseSingleLink(links[0], platform === 'auto' ? null : platform);
+            } else {
+                // 批量解析
+                batchParseLinks(links, platform);
+            }
+        }
+
+        function parseSingleLink(link, platform) {
+            fetch('/parse_link', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    url: link,
+                    platform: platform
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const linkLoading = document.getElementById('link-loading');
+                linkLoading.classList.remove('show');
+                linkLoading.style.display = 'none';
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    linkResult = data;
+                    displayLinkResult([data]);
+                    document.getElementById('batch-download-btn').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                const linkLoading = document.getElementById('link-loading');
+                linkLoading.classList.remove('show');
+                linkLoading.style.display = 'none';
+                showError('解析失败，请检查网络连接');
+                console.error('Error:', error);
+            });
+        }
+
+        function batchParseLinks(links, platform) {
+            parseResults = [];
+            batchResults = [];
+            let currentIndex = 0;
+
+            // 显示批量解析进度
+            const batchProgress = document.getElementById('batch-progress');
+            batchProgress.style.display = 'block';
+            document.getElementById('batch-progress-text').textContent = `0 / ${links.length}`;
+            document.getElementById('batch-progress-bar').style.width = '0%';
+
+            // 先显示所有待解析项
+            displayBatchResults(links);
+
+            function parseNext() {
+                if (currentIndex >= links.length) {
+                    // 批量解析完成
+                    const linkLoading = document.getElementById('link-loading');
+                    linkLoading.classList.remove('show');
+                    linkLoading.style.display = 'none';
+                    batchProgress.style.display = 'none';
+                    
+                    // 显示批量下载按钮
+                    document.getElementById('batch-download-btn').style.display = 'block';
+                    return;
+                }
+
+                const link = links[currentIndex];
+                const itemElement = document.querySelectorAll('.parse-result-item')[currentIndex];
+                const statusElement = itemElement.querySelector('.item-status');
+                const downloadBtn = itemElement.querySelector('.item-download-btn');
+
+                statusElement.textContent = '解析中...';
+                downloadBtn.disabled = true;
+
+                fetch('/parse_link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: link,
+                        platform: platform
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    parseResults[currentIndex] = data;
+                    
+                    if (data.error) {
+                        statusElement.textContent = '解析失败';
+                        statusElement.style.color = '#ff6b6b';
+                        const errorElement = itemElement.querySelector('.item-error');
+                        errorElement.textContent = data.error;
+                        errorElement.style.display = 'block';
+                        downloadBtn.style.display = 'none';
+                    } else {
+                        statusElement.textContent = '解析成功';
+                        statusElement.style.color = '#27ae60';
+                        downloadBtn.disabled = false;
+                        
+                        // 显示封面图
+                        if (data.cover_url) {
+                            const coverContainer = itemElement.querySelector('.item-cover');
+                            const coverImg = itemElement.querySelector('.cover-img');
+                            const proxyUrl = '/image_proxy?url=' + encodeURIComponent(data.cover_url);
+                            coverImg.src = proxyUrl;
+                            coverContainer.style.display = 'block';
+                        }
+                        
+                        // 如果有多个画质选项，显示画质选择
+                        if (data.quality_options && data.quality_options.length > 1) {
+                            const qualityOptions = itemElement.querySelector('.quality-options');
+                            const qualityButtons = qualityOptions.querySelector('.quality-buttons');
+                            qualityButtons.innerHTML = '';
+                            
+                            data.quality_options.forEach((option, idx) => {
+                                const btn = document.createElement('button');
+                                btn.className = 'quality-btn';
+                                btn.textContent = option.label || option.quality;
+                                btn.onclick = () => selectQuality(currentIndex, option, btn);
+                                if (idx === 0) btn.classList.add('selected');
+                                qualityButtons.appendChild(btn);
+                            });
+                            
+                            qualityOptions.style.display = 'block';
+                        }
+                    }
+
+                    // 更新进度
+                    currentIndex++;
+                    document.getElementById('batch-progress-text').textContent = `${currentIndex} / ${links.length}`;
+                    document.getElementById('batch-progress-bar').style.width = `${(currentIndex / links.length) * 100}%`;
+
+                    // 解析下一个
+                    parseNext();
+                })
+                .catch(error => {
+                    console.error('Parse error:', error);
+                    statusElement.textContent = '解析失败';
+                    statusElement.style.color = '#ff6b6b';
+                    downloadBtn.disabled = false;
+                    downloadBtn.style.display = 'none';
+
+                    // 更新进度
+                    currentIndex++;
+                    document.getElementById('batch-progress-text').textContent = `${currentIndex} / ${links.length}`;
+                    document.getElementById('batch-progress-bar').style.width = `${(currentIndex / links.length) * 100}%`;
+
+                    // 解析下一个
+                    parseNext();
+                });
+            }
+
+            // 开始解析
+            parseNext();
+        }
+
+        function displayBatchResults(links) {
+            const resultContent = document.getElementById('link-result-content');
+            const linkResult = document.getElementById('link-result');
+            resultContent.innerHTML = '';
+            
+            links.forEach((link, index) => {
+                const template = document.getElementById('result-item-template');
+                const item = template.content.cloneNode(true);
+                
+                const platform = detectPlatform(link);
+                item.querySelector('.platform-badge').textContent = getPlatformName(platform);
+                item.querySelector('.item-title').textContent = truncateUrl(link);
+                item.querySelector('.item-title').title = link;
+                item.querySelector('.item-status').textContent = '等待解析';
+                
+                resultContent.appendChild(item);
+            });
+
+            document.getElementById('result-count').textContent = `(${links.length}个链接)`;
+            linkResult.style.display = 'block';
+        }
+
+        function displayLinkResult(results) {
+            const resultContent = document.getElementById('link-result-content');
+            const linkResult = document.getElementById('link-result');
+
+            if (results.length === 1) {
+                // 单个结果，显示详细信息
+                const data = results[0];
+                let content = '';
+                content += `<div class="result-grid">`;
+                content += `<div class="result-item">`;
+                content += `<div class="result-label">平台</div>`;
+                content += `<div class="result-value">${data.platform || '未知'}</div>`;
+                content += `</div>`;
+                
+                if (data.title) {
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">标题</div>`;
+                    content += `<div class="result-value">${data.title}</div>`;
+                    content += `</div>`;
+                }
+                
+                if (data.duration) {
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">时长</div>`;
+                    content += `<div class="result-value">${data.duration}</div>`;
+                    content += `</div>`;
+                }
+                
+                if (data.author) {
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">作者</div>`;
+                    content += `<div class="result-value">${data.author}</div>`;
+                    content += `</div>`;
+                }
+                
+                if (data.video_url) {
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">视频URL</div>`;
+                    content += `<div class="result-value"><a href="${data.video_url}" target="_blank" class="result-link">查看链接</a></div>`;
+                    content += `</div>`;
+                }
+                
+                if (data.image_url) {
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">图片URL</div>`;
+                    content += `<div class="result-value"><a href="${data.image_url}" target="_blank" class="result-link">查看链接</a></div>`;
+                    content += `</div>`;
+                }
+                
+                if (data.cover_url) {
+                    const proxyUrl = '/image_proxy?url=' + encodeURIComponent(data.cover_url);
+                    content += `<div class="result-item">`;
+                    content += `<div class="result-label">封面图</div>`;
+                    content += `<div class="result-value"><img src="${proxyUrl}" style="max-width: 100px; max-height: 100px; border-radius: 8px;"></div>`;
+                    content += `</div>`;
+                }
+
+                if (data.subtitles && data.subtitles.length > 0) {
+                    content += `<div class="result-item" style="grid-column: 1 / -1;">`;
+                    content += `<div class="result-label">字幕</div>`;
+                    content += `<div class="result-value">${data.subtitles.join(', ')}</div>`;
+                    content += `</div>`;
+                }
+                
+                // 添加画质选择和下载按钮
+                content += `<div class="result-item" style="grid-column: 1 / -1;">`;
+                content += `<div class="result-label">下载选项</div>`;
+                content += `<div class="result-value">`;
+                
+                if (data.quality_options && data.quality_options.length > 1) {
+                    // 显示画质选择
+                    content += `<select id="quality-select" class="form-control" style="width: 200px; margin-bottom: 10px;">`;
+                    data.quality_options.forEach(format => {
+                        content += `<option value="${format.url}">${format.quality} - ${format.label}</option>`;
+                    });
+                    content += `</select>`;
+                }
+                
+                // 检查是否有可用的下载链接
+                const hasDownloadUrl = data.download_url || data.video_url || data.audio_url || data.image_url;
+                
+                if (hasDownloadUrl) {
+                    // 下载按钮
+                    content += `<button id="download-btn" class="btn" onclick="downloadContent()" style="margin-top: 10px;">`;
+                    content += `⬇️ 立即下载`;
+                    content += `</button>`;
+                } else {
+                    // 没有可用的下载链接
+                    content += `<div style="color: #e74c3c; font-size: 14px; margin-top: 10px;">`;
+                    content += `⚠️ 没有可用的下载链接`;
+                    content += `</div>`;
+                    content += `<div style="color: #95a5a6; font-size: 12px; margin-top: 5px;">`;
+                    content += `提示：可能是因为网络环境或平台反爬措施导致解析失败`;
+                    content += `</div>`;
+                }
+                
+                content += `</div>`;
+                content += `</div>`;
+                
+                content += `</div>`;
+                
+                resultContent.innerHTML = content;
+            }
+
+            linkResult.style.display = 'block';
+        }
+
+        function downloadSingleItem(btn) {
+            const itemElement = btn.closest('.parse-result-item');
+            const index = Array.from(document.querySelectorAll('.parse-result-item')).indexOf(itemElement);
+            const result = parseResults[index];
+            
+            if (!result || result.error) {
+                showError('解析失败，无法下载');
+                return;
+            }
+
+            const downloadUrl = result.download_url || result.video_url || result.audio_url;
+            if (!downloadUrl) {
+                showError('没有可用的下载链接');
+                return;
+            }
+
+            // 禁用按钮，显示下载状态
+            btn.disabled = true;
+            btn.innerHTML = '⏳ 下载中...';
+
+            // 使用代理下载
+            downloadFile(downloadUrl, result.title || 'download', result.platform, btn);
+        }
+
+        function batchDownload() {
+            const successfulResults = parseResults.filter(r => r && !r.error);
+
+            if (successfulResults.length === 0) {
+                showError('没有可用的下载项');
+                return;
+            }
+
+            let currentDownload = 0;
+            const totalDownloads = successfulResults.length;
+
+            function downloadNext() {
+                if (currentDownload >= totalDownloads) {
+                    showToast(`已完成 ${totalDownloads} 个下载`);
+                    return;
+                }
+
+                const result = successfulResults[currentDownload];
+                const downloadUrl = result.download_url || result.video_url || result.audio_url;
+
+                if (downloadUrl) {
+                    const fullUrl = `/download_proxy?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(result.title || 'video')}&platform=${result.platform || ''}`;
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = fullUrl;
+                    document.body.appendChild(iframe);
+                    setTimeout(() => {
+                        try { document.body.removeChild(iframe); } catch(e) {}
+                    }, 10000);
+
+                    showToast(`已开始下载 (${currentDownload + 1}/${totalDownloads})`);
+                }
+
+                currentDownload++;
+
+                // 延迟下载下一个，避免并发过多
+                setTimeout(downloadNext, 1500);
+            }
+
+            showToast(`开始批量下载 ${totalDownloads} 个文件...`);
+            downloadNext();
+        }
+
+        function downloadFile(url, filename, platform, btn) {
+            const fullUrl = `/download_proxy?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}&platform=${platform || ''}`;
+
+            try {
+                showToast('正在准备下载，服务器正在获取文件...');
+
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '⏳ 服务器下载中...';
+                }
+
+                // 用 iframe 触发下载，最可靠的方式
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = fullUrl;
+                document.body.appendChild(iframe);
+
+                // 监听 iframe 加载完成
+                iframe.onload = function() {
+                    try {
+                        // 检查 iframe 内容是否是错误信息
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        const text = doc.body ? doc.body.innerText : '';
+                        if (text.includes('"error"')) {
+                            showError('下载失败: ' + text.substring(0, 200));
+                        }
+                    } catch(e) {
+                        // 跨域访问失败是正常的，说明文件正在下载
+                    }
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 5000);
+                };
+
+                iframe.onerror = function() {
+                    showError('下载请求失败');
+                    document.body.removeChild(iframe);
+                };
+
+                setTimeout(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '✅ 已开始下载';
+                        setTimeout(() => {
+                            btn.innerHTML = '📥 下载';
+                        }, 2000);
+                    }
+                    showToast('下载已开始，请查看浏览器下载管理器');
+                }, 2000);
+            } catch (error) {
+                console.error('下载失败:', error);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '📥 下载';
+                }
+                showError('下载失败: ' + error.message);
+            }
+        }
+
+        function downloadContent() {
+            if (!linkResult) {
+                showError('请先解析链接');
+                return;
+            }
+
+            const data = linkResult;
+
+            const downloadBtn = document.getElementById('download-btn');
+            if (downloadBtn) {
+                downloadBtn.disabled = true;
+                downloadBtn.innerHTML = '⏳ 下载中...';
+            }
+
+            let downloadUrl = null;
+            const qualitySelect = document.getElementById('quality-select');
+            
+            if (qualitySelect) {
+                // 从画质选择器获取选中的链接
+                downloadUrl = qualitySelect.value;
+            } else {
+                // 从解析结果中获取默认链接
+                downloadUrl = data.download_url || data.video_url || data.audio_url || data.image_url;
+            }
+
+            if (downloadUrl) {
+                // 检查是否是图片文件
+                const isImage = downloadUrl.includes('.jpg') || downloadUrl.includes('.png') || 
+                              downloadUrl.includes('.gif') || downloadUrl.includes('.webp') || 
+                              downloadUrl.includes('.jpeg');
+                
+                const filename = data.title || (isImage ? 'image' : 'video');
+                
+                downloadFile(downloadUrl, filename, data.platform, downloadBtn);
+            } else {
+                showError('没有可用的下载链接');
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = '⬇️ 立即下载';
+                    downloadBtn.disabled = false;
+                }
+            }
+        }
+
+        function selectQuality(index, option, btnElement) {
+            // 更新选中状态
+            const qualityButtons = btnElement.parentElement.querySelectorAll('.quality-btn');
+            qualityButtons.forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            btnElement.classList.add('selected');
+
+            // 更新下载链接
+            if (parseResults[index]) {
+                parseResults[index].download_url = option.url;
+                parseResults[index].selected_quality = option.quality;
+            }
+        }
+
+        function detectPlatform(url) {
+            if (!url) return 'general';
+            url = url.toLowerCase();
+            if (url.includes('douyin.com') || url.includes('v.douyin.com')) return 'douyin';
+            if (url.includes('bilibili.com')) return 'bilibili';
+            if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+            if (url.includes('twitter.com') || url.includes('x.com')) return 'twitter';
+            if (url.includes('tiktok.com')) return 'tiktok';
+            if (url.includes('instagram.com')) return 'instagram';
+            if (url.includes('facebook.com')) return 'facebook';
+            if (url.includes('onlyfans.com')) return 'onlyfans';
+            return 'general';
+        }
+
+        function getPlatformName(platform) {
+            const names = {
+                'douyin': '抖音',
+                'bilibili': 'B站',
+                'youtube': 'YouTube',
+                'twitter': 'Twitter/X',
+                'tiktok': 'TikTok',
+                'instagram': 'Instagram',
+                'facebook': 'Facebook',
+                'onlyfans': 'OnlyFans',
+                'general': '通用'
+            };
+            return names[platform] || platform;
+        }
+
+        function truncateUrl(url, maxLength = 50) {
+            if (!url) return '';
+            if (url.length <= maxLength) return url;
+            return url.substring(0, maxLength) + '...';
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            // 3秒后自动隐藏错误信息
+            setTimeout(() => {
+                errorElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // 显示结果
+        function displayResults(data, type) {
+            // 显示对应类型的结果卡片
+            if (type === 'video') {
+                // 只有在视频选项卡下才显示结果
+                if (currentTab === 'video') {
+                    document.getElementById('video-result-card').style.display = 'block';
+                    document.getElementById('video-result-card').classList.add('show');
+                }
+                
+                // 更新结果值
+                document.getElementById('video-res-duration').textContent = data.duration || '-';
+                document.getElementById('video-res-fps').textContent = data.fps || '-';
+                document.getElementById('video-res-resolution').textContent = data.resolution || '-';
+                document.getElementById('video-res-color').textContent = data.dominant_color || '-';
+                document.getElementById('video-color-preview').style.backgroundColor = data.dominant_color || '#000';
+                document.getElementById('video-res-warmth').textContent = data.warmth || '-';
+                document.getElementById('video-res-saturation').textContent = data.saturation || '-';
+                document.getElementById('video-res-brightness').textContent = data.brightness || '-';
+                document.getElementById('video-res-motion').textContent = data.motion_level || '-';
+                document.getElementById('video-res-scene').textContent = data.scene_type || '-';
+            } else if (type === 'image') {
+                // 只有在图片选项卡下才显示结果
+                if (currentTab === 'image') {
+                    document.getElementById('image-result-card').style.display = 'block';
+                    document.getElementById('image-result-card').classList.add('show');
+                }
+                
+                // 更新结果值
+                document.getElementById('image-res-resolution').textContent = data.resolution || '-';
+                document.getElementById('image-res-color').textContent = data.dominant_color || '-';
+                document.getElementById('image-color-preview').style.backgroundColor = data.dominant_color || '#000';
+                document.getElementById('image-res-warmth').textContent = data.warmth || '-';
+                document.getElementById('image-res-saturation').textContent = data.saturation || '-';
+                document.getElementById('image-res-brightness').textContent = data.brightness || '-';
+                document.getElementById('image-res-motion').textContent = data.motion_level || '-';
+                document.getElementById('image-res-scene').textContent = data.scene_type || '-';
+            }
+        }
+
+        // 显示提示词
+        function displayPrompts(prompts, type) {
+            let promptResults;
+            let promptCard;
+            
+            if (type === 'video') {
+                promptResults = document.getElementById('video-prompt-results');
+                promptCard = document.getElementById('video-prompt-card');
+                // 只有在视频选项卡下才显示提示词
+                if (currentTab === 'video') {
+                    promptCard.style.display = 'block';
+                }
+            } else if (type === 'image') {
+                promptResults = document.getElementById('image-prompt-results');
+                promptCard = document.getElementById('image-prompt-card');
+                // 只有在图片选项卡下才显示提示词
+                if (currentTab === 'image') {
+                    promptCard.style.display = 'block';
+                }
+            }
+            
+            if (promptResults) {
+                promptResults.innerHTML = '';
+                
+                if (prompts && prompts.length > 0) {
+                    promptCard.classList.add('show');
+                    
+                    let promptIndex = 1;
+                    
+                    prompts.forEach((item) => {
+                        // 将字面量\n转换为实际换行
+                        function fixNewlines(str) {
+                            if (typeof str !== 'string') return str;
+                            return str.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+                        }
+
+                        // 尝试展开嵌套：如果item是JSON字符串，解析它
+                        let expandedItem = item;
+                        if (typeof item === 'string' && item.trim().startsWith('{')) {
+                            try {
+                                expandedItem = JSON.parse(item);
+                            } catch(e) {}
+                        }
+
+                        // 处理嵌套的prompts结构
+                        if (expandedItem && expandedItem.prompts) {
+                            expandedItem.prompts.forEach((promptItem) => {
+                                const promptCardEl = document.createElement('div');
+                                promptCardEl.className = 'prompt-card';
+
+                                const label = document.createElement('div');
+                                label.className = 'prompt-label';
+                                label.textContent = `提示词 ${promptIndex++}`;
+
+                                const promptBox = document.createElement('div');
+                                promptBox.className = 'prompt-box';
+
+                                // 优先显示中文提示词
+                                const promptText = fixNewlines(promptItem.prompt_cn || promptItem.prompt_en || JSON.stringify(promptItem));
+                                promptBox.textContent = promptText;
+                                promptBox.onclick = () => copyToClipboard(promptText);
+
+                                const copyBtn = document.createElement('button');
+                                copyBtn.className = 'copy-btn';
+                                copyBtn.textContent = '复制';
+                                copyBtn.onclick = (e) => {
+                                    e.stopPropagation();
+                                    copyToClipboard(promptText);
+                                };
+
+                                // 如果有风格标签，显示出来
+                                if (promptItem.style_tags && promptItem.style_tags.length > 0) {
+                                    const tagsDiv = document.createElement('div');
+                                    tagsDiv.className = 'prompt-tags';
+                                    promptItem.style_tags.forEach(tag => {
+                                        const tagSpan = document.createElement('span');
+                                        tagSpan.className = 'tag';
+                                        tagSpan.textContent = tag;
+                                        tagsDiv.appendChild(tagSpan);
+                                    });
+                                    promptCardEl.appendChild(tagsDiv);
+                                }
+
+                                promptCardEl.appendChild(label);
+                                promptCardEl.appendChild(promptBox);
+                                promptCardEl.appendChild(copyBtn);
+
+                                promptResults.appendChild(promptCardEl);
+                            });
+                        } else {
+                            // 处理提示词对象或字符串
+                            const promptCardEl = document.createElement('div');
+                            promptCardEl.className = 'prompt-card';
+
+                            const label = document.createElement('div');
+                            label.className = 'prompt-label';
+                            label.textContent = `提示词 ${promptIndex++}`;
+
+                            const promptBox = document.createElement('div');
+                            promptBox.className = 'prompt-box';
+
+                            // 提取显示文本：优先prompt_cn，其次prompt_en，最后JSON.stringify
+                            let displayText;
+                            if (expandedItem && typeof expandedItem === 'object') {
+                                displayText = fixNewlines(expandedItem.prompt_cn || expandedItem.prompt_en || JSON.stringify(expandedItem, null, 2));
+                            } else {
+                                displayText = fixNewlines(expandedItem);
+                            }
+                            promptBox.textContent = displayText;
+                            promptBox.onclick = () => copyToClipboard(displayText);
+
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.textContent = '复制';
+                            copyBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                copyToClipboard(displayText);
+                            };
+
+                            // 显示风格标签
+                            if (expandedItem && expandedItem.style_tags && expandedItem.style_tags.length > 0) {
+                                const tagsDiv = document.createElement('div');
+                                tagsDiv.className = 'prompt-tags';
+                                expandedItem.style_tags.forEach(tag => {
+                                    const tagSpan = document.createElement('span');
+                                    tagSpan.className = 'tag';
+                                    tagSpan.textContent = tag;
+                                    tagsDiv.appendChild(tagSpan);
+                                });
+                                promptCardEl.appendChild(tagsDiv);
+                            }
+
+                            promptCardEl.appendChild(label);
+                            promptCardEl.appendChild(promptBox);
+                            promptCardEl.appendChild(copyBtn);
+
+                            promptResults.appendChild(promptCardEl);
+                        }
+                    });
+                }
+            }
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showToast('已复制到剪贴板！');
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                });
+        }
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 2000);
+        }
+
+        // 显示错误提示（红色胶囊）
+        function showToastError(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-error';
+            toast.textContent = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 2000);
+        }
+
+        // 模型数据管理
+        // providers and currentProvider are already declared at the top
+
+        // 加载模型配置
+        function loadProviders() {
+            const savedProviders = localStorage.getItem('providers');
+            if (savedProviders) {
+                try {
+                    providers = JSON.parse(savedProviders);
+                } catch (e) {
+                    console.error('加载模型配置失败:', e);
+                }
+            }
+        }
+
+        // 保存模型配置
+        function saveProviders() {
+            localStorage.setItem('providers', JSON.stringify(providers));
+        }
+
+        // 加载模型列表
+        function loadModelList() {
+            const modelList = document.getElementById('model-list');
+            modelList.innerHTML = '';
+
+            if (providers.length === 0) {
+                modelList.innerHTML = '<div style="text-align: center; padding: 60px; color: #888;">暂无模型配置</div>';
+            } else {
+                providers.forEach(provider => {
+                    const providerItem = document.createElement('div');
+                    // 添加当前使用模型的样式
+                    if (currentProvider && currentProvider.id === provider.id) {
+                        providerItem.className = 'provider-item active';
+                    } else {
+                        providerItem.className = 'provider-item';
+                    }
+                    
+                    const providerInfo = document.createElement('div');
+                    providerInfo.className = 'provider-info';
+                    
+                    const providerName = document.createElement('div');
+                    providerName.className = 'provider-name';
+                    providerName.textContent = provider.name;
+                    
+                    const providerMeta = document.createElement('div');
+                    providerMeta.className = 'provider-meta';
+                    providerMeta.textContent = `${provider.model} | ${provider.format}${provider.note ? ` | ${provider.note}` : ''}`;
+                    
+                    // 添加当前使用标记
+                    if (currentProvider && currentProvider.id === provider.id) {
+                        const activeBadge = document.createElement('span');
+                        activeBadge.className = 'active-badge';
+                        activeBadge.textContent = '当前使用';
+                        providerMeta.appendChild(activeBadge);
+                    }
+                    
+                    providerInfo.appendChild(providerName);
+                    providerInfo.appendChild(providerMeta);
+                    
+                    const providerActions = document.createElement('div');
+                    providerActions.className = 'provider-actions';
+                    
+                    const useBtn = document.createElement('button');
+                    useBtn.className = 'provider-btn use';
+                    useBtn.textContent = '使用';
+                    useBtn.onclick = () => {
+                        currentProvider = provider;
+                        showToast(`已选择配置: ${provider.name} (${provider.model})`);
+                        loadModelList(); // 重新加载模型列表，显示当前使用的模型
+                    };
+                    
+                    const testBtn = document.createElement('button');
+                    testBtn.className = 'provider-btn edit';
+                    testBtn.textContent = '测试';
+                    testBtn.onclick = () => testProviderConnection(provider);
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'provider-btn edit';
+                    editBtn.textContent = '编辑';
+                    editBtn.onclick = () => showEditProviderModal(provider);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'provider-btn delete';
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.onclick = () => deleteProvider(provider.id);
+                    
+                    providerActions.appendChild(useBtn);
+                    providerActions.appendChild(testBtn);
+                    providerActions.appendChild(editBtn);
+                    providerActions.appendChild(deleteBtn);
+                    
+                    providerItem.appendChild(providerInfo);
+                    providerItem.appendChild(providerActions);
+                    
+                    modelList.appendChild(providerItem);
+                });
+            }
+        }
+
+        // 显示添加模型模态框
+        function showAddProviderModal() {
+            document.getElementById('modal-title').textContent = '添加模型';
+            document.getElementById('provider-name').value = '';
+            document.getElementById('provider-endpoint').value = '';
+            document.getElementById('provider-model').value = '';
+            document.getElementById('provider-format').value = 'openai';
+            document.getElementById('provider-api-key').value = '';
+            document.getElementById('provider-note').value = '';
+            // 重置预设标签
+            document.querySelectorAll('.preset-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('.preset-tab[data-preset=""]').classList.add('active');
+            // 清除编辑ID
+            delete document.getElementById('provider-modal').dataset.editId;
+            document.getElementById('provider-modal').classList.add('show');
+        }
+
+        // 显示编辑模型模态框
+        function showEditProviderModal(provider) {
+            document.getElementById('modal-title').textContent = '编辑模型';
+            document.getElementById('provider-name').value = provider.name;
+            document.getElementById('provider-endpoint').value = provider.endpoint;
+            document.getElementById('provider-model').value = provider.model;
+            document.getElementById('provider-format').value = provider.format;
+            document.getElementById('provider-api-key').value = provider.apiKey;
+            document.getElementById('provider-note').value = provider.note || '';
+            // 重置预设标签
+            document.querySelectorAll('.preset-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('.preset-tab[data-preset=""]').classList.add('active');
+            // 存储当前编辑的模型ID
+            document.getElementById('provider-modal').dataset.editId = provider.id;
+            document.getElementById('provider-modal').classList.add('show');
+        }
+
+        // 关闭模型配置模态框
+        function closeProviderModal() {
+            document.getElementById('provider-modal').classList.remove('show');
+        }
+
+        // 删除模型
+        function deleteProvider(providerId) {
+            if (confirm('确定要删除这个模型吗？')) {
+                providers = providers.filter(p => p.id !== providerId);
+                saveProviders();
+                if (currentProvider && currentProvider.id === providerId) {
+                    currentProvider = null;
+                }
+                showToast('模型已删除！');
+                loadModelList();
+            }
+        }
+
+        // 测试连接
+        function testProviderConnection(provider) {
+            // 显示加载状态
+            const testLoading = document.getElementById('test-loading');
+            testLoading.style.display = 'block';
+            testLoading.classList.add('show');
+
+            // 发送测试请求
+            fetch('/test_connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ provider_config: provider })
+            })
+            .then(response => response.json())
+            .then(data => {
+                testLoading.classList.remove('show');
+                testLoading.style.display = 'none';
+                if (data.success) {
+                    // 如果发现了正确的端点，自动更新
+                    if (data.discovered_endpoint) {
+                        showToast(data.message);
+                        // 更新输入框中的端点
+                        document.getElementById('provider-endpoint').value = data.discovered_endpoint;
+                        // 更新当前provider对象
+                        if (provider) {
+                            provider.endpoint = data.discovered_endpoint;
+                        }
+                    } else {
+                        showToast(data.message);
+                    }
+                } else {
+                    showToast('连接测试失败：' + data.error);
+                }
+            })
+            .catch(error => {
+                testLoading.classList.remove('show');
+                testLoading.style.display = 'none';
+                showToast('连接测试失败：网络错误');
+                console.error('Error:', error);
+            });
+        }
+
+        // 导出模型配置
+        function exportProviders() {
+            if (providers.length === 0) {
+                showToast('没有模型配置可导出');
+                return;
+            }
+
+            const dataStr = JSON.stringify(providers, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `providers_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('配置导出成功！');
+        }
+
+        // 导入模型配置
+        function importProviders(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedProviders = JSON.parse(e.target.result);
+                    if (Array.isArray(importedProviders)) {
+                        // 合并配置，避免覆盖现有配置
+                        const existingIds = new Set(providers.map(p => p.id));
+                        const newProviders = importedProviders.filter(p => !existingIds.has(p.id));
+                        
+                        if (newProviders.length > 0) {
+                            providers = [...providers, ...newProviders];
+                            saveProviders();
+                            showToast(`成功导入 ${newProviders.length} 个模型配置！`);
+                            loadModelList();
+                        } else {
+                            showToast('没有新的模型配置可导入');
+                        }
+                    } else {
+                        showToast('导入失败：文件格式不正确');
+                    }
+                } catch (error) {
+                    showToast('导入失败：文件格式错误');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.onerror = function() {
+                showToast('导入失败：读取文件错误');
+            };
+            reader.readAsText(file);
+        }
+
+        // 预设配置
+        const presets = {
+            openai: {
+                name: 'OpenAI',
+                endpoint: 'https://api.openai.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            anthropic: {
+                name: 'Claude Official',
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                model: 'claude-3-5-sonnet-20240620',
+                format: 'anthropic'
+            },
+            gemini: {
+                name: 'Google Gemini',
+                endpoint: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-lite:generateContent',
+                model: 'gemini-1.5-flash-lite',
+                format: 'openai'
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                endpoint: 'https://api.deepseek.com/v1/chat/completions',
+                model: 'deepseek-chat',
+                format: 'openai'
+            },
+            azure: {
+                name: 'Azure OpenAI',
+                endpoint: 'https://YOUR_RESOURCE_NAME.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT_NAME/chat/completions?api-version=2024-02-15-preview',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            doubao: {
+                name: 'Doubao',
+                endpoint: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+                model: 'doubao-pro-32k',
+                format: 'openai'
+            },
+            minimax: {
+                name: 'MiniMax',
+                endpoint: 'https://api.minimax.chat/v1/text/chatcompletion_v2',
+                model: 'abab6.5s-chat',
+                format: 'openai'
+            },
+            minimax_en: {
+                name: 'MiniMax en',
+                endpoint: 'https://api.minimax.chat/v1/text/chatcompletion_v2',
+                model: 'abab6.5s-chat',
+                format: 'openai'
+            },
+            bailian: {
+                name: 'Bailian',
+                endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                model: 'qwen3.5-plus',
+                format: 'openai'
+            },
+            bailian_coding: {
+                name: 'Bailian For Coding',
+                endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                model: 'qwen3.5-plus',
+                format: 'openai'
+            },
+            kimi: {
+                name: 'Kimi',
+                endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+                model: 'moonshot-v1-8k',
+                format: 'openai'
+            },
+            kimi_coding: {
+                name: 'Kimi For Coding',
+                endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+                model: 'moonshot-v1-8k',
+                format: 'openai'
+            },
+            stepfun: {
+                name: 'StepFun',
+                endpoint: 'https://api.stepfun.com/v1/chat/completions',
+                model: 'stepfun',
+                format: 'openai'
+            },
+            zhipu: {
+                name: 'Zhipu GLM',
+                endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                model: 'glm-4-flash',
+                format: 'openai'
+            },
+            zhipu_en: {
+                name: 'Zhipu GLM en',
+                endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                model: 'glm-4-flash',
+                format: 'openai'
+            },
+            katcoder: {
+                name: 'KAT-Coder',
+                endpoint: 'https://api.katcoder.com/v1/chat/completions',
+                model: 'katcoder',
+                format: 'openai'
+            },
+            longcat: {
+                name: 'Longcat',
+                endpoint: 'https://api.longcat.com/v1/chat/completions',
+                model: 'longcat',
+                format: 'openai'
+            },
+            doubaoseed: {
+                name: 'DouBaoSeed',
+                endpoint: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+                model: 'doubao-pro-32k',
+                format: 'openai'
+            },
+            bailing: {
+                name: 'BaiLing',
+                endpoint: 'https://api.bailing.com/v1/chat/completions',
+                model: 'bailing',
+                format: 'openai'
+            },
+            xiaomi: {
+                name: 'Xiaomi MiMo',
+                endpoint: 'https://api.mi.com/v1/chat/completions',
+                model: 'mimo',
+                format: 'openai'
+            },
+            modelscope: {
+                name: 'ModelScope',
+                endpoint: 'https://modelscope.cn/api/v1/chat/completions',
+                model: 'Qwen/Qwen2.5-7B-Instruct',
+                format: 'openai'
+            },
+            aihubmix: {
+                name: 'AiHubMix',
+                endpoint: 'https://api.aihubmix.com/v1/chat/completions',
+                model: 'aihubmix',
+                format: 'openai'
+            },
+            siliconflow: {
+                name: 'SiliconFlow',
+                endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+                model: 'Qwen/Qwen2.5-7B-Instruct',
+                format: 'openai'
+            },
+            siliconflow_en: {
+                name: 'SiliconFlow en',
+                endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+                model: 'Qwen/Qwen2.5-7B-Instruct',
+                format: 'openai'
+            },
+            dmxapi: {
+                name: 'DMXAPI',
+                endpoint: 'https://api.dmxapi.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            youyun: {
+                name: '优云智算',
+                endpoint: 'https://api.youyun.com/v1/chat/completions',
+                model: 'youyun',
+                format: 'openai'
+            },
+            openrouter: {
+                name: 'OpenRouter',
+                endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            novita: {
+                name: 'Novita AI',
+                endpoint: 'https://api.novita.ai/v1/chat/completions',
+                model: 'novita',
+                format: 'openai'
+            },
+            nvidia: {
+                name: 'Nvidia',
+                endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+                model: 'meta/llama-3.1-405b-instruct',
+                format: 'openai'
+            },
+            packycode: {
+                name: 'PackyCode',
+                endpoint: 'https://api.packycode.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            cubence: {
+                name: 'Cubence',
+                endpoint: 'https://api.cubence.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            aigocode: {
+                name: 'AIGoCode',
+                endpoint: 'https://api.aigocode.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            rightcode: {
+                name: 'RightCode',
+                endpoint: 'https://api.rightcode.io/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            aicodemirror: {
+                name: 'AICodeMirror',
+                endpoint: 'https://api.aicodemirror.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            aicoding: {
+                name: 'AICoding',
+                endpoint: 'https://api.aicoding.sh/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            crazyrouter: {
+                name: 'CrazyRouter',
+                endpoint: 'https://api.crazyrouter.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            sssaicode: {
+                name: 'SSSAiCode',
+                endpoint: 'https://api.sssaicode.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            micu: {
+                name: 'Micu',
+                endpoint: 'https://api.micuapi.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            xcodeapi: {
+                name: 'X-Code API',
+                endpoint: 'https://api.xcodeapi.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            ctok: {
+                name: 'CTok.ai',
+                endpoint: 'https://api.ctok.ai/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                format: 'openai'
+            },
+            aws_bedrock_aksk: {
+                name: 'AWS Bedrock (AKSK)',
+                endpoint: 'https://bedrock.us-east-1.amazonaws.com/model',
+                model: 'anthropic.claude-3-haiku-20240307-v1:0',
+                format: 'openai'
+            },
+            aws_bedrock_api: {
+                name: 'AWS Bedrock (API Key)',
+                endpoint: 'https://bedrock.us-east-1.amazonaws.com/model',
+                model: 'anthropic.claude-3-haiku-20240307-v1:0',
+                format: 'openai'
+            }
+        };
+
+        // 加载预设配置
+        function loadPresetConfig(presetKey) {
+            if (presetKey && presets[presetKey]) {
+                const preset = presets[presetKey];
+                document.getElementById('provider-name').value = preset.name;
+                document.getElementById('provider-endpoint').value = preset.endpoint;
+                document.getElementById('provider-model').value = preset.model;
+                document.getElementById('provider-format').value = preset.format;
+                document.getElementById('provider-api-key').value = '';
+                document.getElementById('provider-note').value = '';
+            }
+        }
+
+        // 保存模型配置
+        async function saveProvider() {
+            const name = document.getElementById('provider-name').value;
+            const endpoint = document.getElementById('provider-endpoint').value;
+            const model = document.getElementById('provider-model').value;
+            const format = document.getElementById('provider-format').value;
+            const apiKey = document.getElementById('provider-api-key').value;
+            const note = document.getElementById('provider-note').value;
+
+            if (!name || !endpoint || !model || !apiKey) {
+                showError('请填写所有必填字段');
+                return;
+            }
+
+            const editId = document.getElementById('provider-modal').dataset.editId;
+            const providerData = {
+                name: name,
+                endpoint: endpoint,
+                model: model,
+                format: format,
+                apiKey: apiKey,
+                note: note
+            };
+
+            try {
+                if (editId) {
+                    // 编辑现有模型
+                    const response = await fetch(`/providers/custom/${editId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(providerData)
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('模型更新成功！');
+                    } else {
+                        showError('更新失败: ' + (data.error || '未知错误'));
+                        return;
+                    }
+                } else {
+                    // 添加新模型
+                    const response = await fetch('/providers/custom', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(providerData)
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('模型添加成功！');
+                    } else {
+                        showError('添加失败: ' + (data.error || '未知错误'));
+                        return;
+                    }
+                }
+
+                closeProviderModal();
+                loadAllProviders();
+            } catch (error) {
+                showError('保存失败: ' + error.message);
+            }
+        }
+
+        // ============ 新模型管理界面函数 ============
+
+        // 加载所有供应商（从API获取）
+        async function loadAllProviders() {
+            try {
+                const response = await fetch('/providers');
+                allProviders = await response.json();
+                renderProviderList();
+            } catch (error) {
+                console.error('加载供应商失败:', error);
+                // 如果API调用失败，回退到本地存储
+                allProviders = providers.map(p => ({
+                    ...p,
+                    category: 'custom'
+                }));
+                renderProviderList();
+            }
+        }
+
+        // 渲染供应商列表
+        function renderProviderList() {
+            const providerList = document.getElementById('provider-list');
+            if (!providerList) return;
+
+            let filtered = allProviders;
+
+            // 分类筛选
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+
+            // 搜索筛选
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(p =>
+                    p.name.toLowerCase().includes(query) ||
+                    (p.note && p.note.toLowerCase().includes(query)) ||
+                    (p.model && p.model.toLowerCase().includes(query))
+                );
+            }
+
+            if (filtered.length === 0) {
+                providerList.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">暂无模型</div>';
+                return;
+            }
+
+            providerList.innerHTML = filtered.map(provider => `
+                <div class="provider-mgr-item ${currentProvider && currentProvider.id === provider.id ? 'active' : ''}">
+                    <div class="provider-mgr-info">
+                        <div class="provider-mgr-name">${provider.name}${currentProvider && currentProvider.id === provider.id ? ' <span style="color:#27ae60;font-size:12px;">[当前使用]</span>' : ''}</div>
+                        <div class="provider-mgr-model">${provider.model}</div>
+                        ${provider.note ? `<div class="provider-mgr-note">${provider.note}</div>` : ''}
+                    </div>
+                    <div class="provider-mgr-actions">
+                        <button class="provider-mgr-btn use" onclick="useProvider('${provider.id}')">使用</button>
+                        <button class="provider-mgr-btn test" onclick="testProviderById('${provider.id}')">测试</button>
+                        <button class="provider-mgr-btn edit" onclick="editProviderById('${provider.id}')">编辑</button>
+                        <button class="provider-mgr-btn delete" onclick="deleteProviderById('${provider.id}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 筛选供应商
+        function filterProviders(category) {
+            currentCategory = category;
+            document.querySelectorAll('.provider-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+            renderProviderList();
+        }
+
+        // 搜索供应商
+        function searchProviders(query) {
+            searchQuery = query;
+            renderProviderList();
+        }
+
+        // 使用供应商
+        function useProvider(providerId) {
+            const provider = allProviders.find(p => p.id === providerId);
+            if (provider) {
+                currentProvider = provider;
+                localStorage.setItem('currentProvider', JSON.stringify(provider));
+                renderProviderList();
+                showToast(`已切换到: ${provider.name}`);
+            }
+        }
+
+        // 测试供应商（通过ID）
+        async function testProviderById(providerId) {
+            const provider = allProviders.find(p => p.id === providerId);
+            if (!provider) return;
+
+            if (!provider.apiKey && provider.category !== 'custom') {
+                showError('请先为该供应商配置 API Key');
+                return;
+            }
+
+            const testLoading = document.getElementById('test-loading');
+            if (testLoading) {
+                testLoading.style.display = 'block';
+                testLoading.classList.add('show');
+            }
+
+            try {
+                const response = await fetch('/test_connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider_config: provider })
+                });
+                const data = await response.json();
+
+                if (testLoading) {
+                    testLoading.classList.remove('show');
+                    testLoading.style.display = 'none';
+                }
+
+                if (data.success) {
+                    showToast(`连接成功: ${provider.name}`);
+                } else {
+                    showToastError(`连接失败: ${data.error || '请检查配置'}`);
+                }
+            } catch (error) {
+                if (testLoading) {
+                    testLoading.classList.remove('show');
+                    testLoading.style.display = 'none';
+                }
+                showToastError('测试失败，请检查网络连接');
+            }
+        }
+
+        // 编辑供应商（通过ID）
+        function editProviderById(providerId) {
+            const provider = allProviders.find(p => p.id === providerId);
+            if (provider) {
+                showEditProviderModal(provider);
+            }
+        }
+
+        // 删除供应商（通过ID）
+        async function deleteProviderById(providerId) {
+            if (!confirm('确定要删除这个供应商吗？')) return;
+
+            try {
+                const response = await fetch(`/providers/${providerId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('删除成功');
+                    loadAllProviders();
+                } else {
+                    showError('删除失败');
+                }
+            } catch (error) {
+                showError('删除失败');
+            }
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载模型配置
+            loadProviders();
+
+            // 加载所有供应商（新管理界面）
+            loadAllProviders();
+
+            // 绑定预设标签点击事件
+            const presetTabs = document.querySelectorAll('.preset-tab');
+            presetTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签的active类
+                    presetTabs.forEach(t => t.classList.remove('active'));
+                    // 添加当前标签的active类
+                    this.classList.add('active');
+                    // 加载预设配置
+                    const presetKey = this.dataset.preset;
+                    loadPresetConfig(presetKey);
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>

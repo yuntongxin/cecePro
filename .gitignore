@@ -1,0 +1,41 @@
+# Python虚拟环境
+.venv/
+venv/
+env/
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE配置
+.trae/
+.vscode/
+.idea/
+
+# Claude配置
+.claude/
+
+# 上传的临时文件
+static/uploads/*
+!static/uploads/.gitkeep
+
+# 测试生成的文件
+*.mp4
+*.png
+*.jpg
+*.jpeg
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 环境变量文件
+.env
+
+# 抖音cookie文件
+.douyin_cookies_*.txt
