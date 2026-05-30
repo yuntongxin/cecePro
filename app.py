@@ -547,6 +547,89 @@ def _ytdlp_download(url, platform, filename):
     return downloaded, None
 
 
+async def _get_browser_cookies(url, platform):
+    """用 Playwright 浏览器访问页面并获取 Cookie"""
+    from utils.browser_parser import BrowserParser
+
+    parser = BrowserParser()
+    try:
+        await parser.start()
+        page = await parser.browser.new_page(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        )
+
+        await page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        """)
+
+        # 访问平台主页获取 Cookie
+        try:
+            if platform == 'douyin' or 'douyin' in url:
+                await page.goto('https://www.douyin.com/', wait_until='domcontentloaded', timeout=20000)
+                await asyncio.sleep(3)
+        except:
+            pass
+
+        # 获取所有 Cookie
+        all_cookies = await page.context.cookies()
+        await page.close()
+
+        return all_cookies, None
+    except Exception as e:
+        return None, str(e)
+    finally:
+        await parser.stop()
+
+
+def _browser_download_sync(url, platform):
+    """同步包装：用 Playwright 浏览器获取 Cookie 并下载视频"""
+    import asyncio
+    import concurrent.futures
+    try:
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    cookies, err = pool.submit(asyncio.run, _get_browser_cookies(url, platform)).result(timeout=60)
+            else:
+                cookies, err = loop.run_until_complete(_get_browser_cookies(url, platform))
+        except RuntimeError:
+            cookies, err = asyncio.run(_get_browser_cookies(url, platform))
+
+        if err or not cookies:
+            return None, err or '无法获取浏览器Cookie'
+
+        # 构造 Cookie Header
+        cookie_str = '; '.join([f"{c['name']}={c['value']}" for c in cookies if 'douyin' in c.get('domain', '')])
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://www.douyin.com/',
+            'Cookie': cookie_str,
+            'Accept': '*/*',
+            'Accept-Encoding': 'identity',
+        }
+
+        print(f"使用浏览器Cookie下载: {url[:80]}...")
+        resp = requests.get(url, headers=headers, stream=True, timeout=120)
+        resp.raise_for_status()
+
+        # 保存到临时文件
+        import tempfile
+        temp_dir = tempfile.mkdtemp()
+        file_path = os.path.join(temp_dir, 'video.mp4')
+        with open(file_path, 'wb') as f:
+            for chunk in resp.iter_content(chunk_size=65536):
+                if chunk:
+                    f.write(chunk)
+        resp.close()
+
+        return file_path, None
+    except Exception as e:
+        return None, str(e)
+
+
 @app.route('/download_proxy')
 def download_proxy():
     import tempfile
@@ -566,7 +649,7 @@ def download_proxy():
         print(f"开始下载: {url}")
         print(f"平台: {platform}")
 
-        # 检查是否是CDN直链（跳过yt-dlp，直接用HTTP下载）
+        # 检查是否是CDN直链
         is_cdn_url = any(cdn in url for cdn in [
             'douyinvod.com', 'bytevcloudcdn.com', 'bytecdn.cn',
             'tiktokcdn.com', 'tikcdn.com',
@@ -579,9 +662,11 @@ def download_proxy():
         error = None
 
         if is_cdn_url:
-            print(f"检测到CDN直链，跳过yt-dlp直接下载...")
+            # CDN直链需要用浏览器下载（防盗链）
+            print("检测到CDN直链，使用浏览器下载...")
+            downloaded_file, error = _browser_download_sync(url, platform)
         else:
-            # Step 1: 尝试yt-dlp下载（适用于非CDN链接）
+            # 非CDN链接用yt-dlp下载
             print("使用 yt-dlp 下载...")
             downloaded_file, error = _ytdlp_download(url, platform, filename)
 
